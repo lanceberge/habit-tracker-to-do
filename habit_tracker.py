@@ -12,20 +12,31 @@ is_running = True
 
 class Task:
     def __init__(self, name, days=None):
-        """A task with a name, days to be completed, 
+        """A task with a name, days to be completed,
         frequency to complete, and time_frame for completion"""
         self.name = name
         self.days = days
 
     def __str__(self):
-        if self.days == None:
+        """A string representation of the object for viewing.
+        Example Output: 'Exercise; daily' or 'Study; M,W,F' """
+        if self.days is None:
             return f"{self.name}"
         else:
             str_days = ",".join(self.days) if len(self.days) != 7 else "daily"
             return f"{self.name}; {str_days}"
 
+    def __repr__(self):
+        """A string representation of the object. This is exactly
+        what is added to the csv
+        example output: 'Exercise,M-W-F' """
+        str_days = "-".join(self.days) if self.days is not None else ""
+        return f"{self.name},{str_days}"
+
 
 def read_file():
+    """Reads the csv and appends task objects to either to_do_list
+    or habits_list """
     with open(os.path.join(sys.path[0], "habits.csv"), "r") as csv_habits:
         reader = csv.reader(csv_habits)
         for line in reader:
@@ -35,30 +46,45 @@ def read_file():
                 habits_list.append(Task(line[0], line[1].split("-")))
 
 
+def append_to_csv(task):
+    """Takes a task and appends repr(task) to the csv"""
+    with open(os.path.join(sys.path[0], "habits.csv"), "a+", newline="") as csv_habits:
+        csv_writer = csv.writer(csv_habits)
+        csv_writer.writerow(repr(task).split(","))
+
+
 def tasks_for_today():
-    [print(task.name) for task in habits_list if today in task.days]
+    for task in habits_list:
+        if today in task.days:
+            print(task.name)
 
 
 def tasks_for_day():
-    day = input("Enter M, T, W, Th, F, S, or Su: ")
-    [print(task.name) for task in habits_list if day in task.days]
+    day = input("Get tasks for day, Enter: M, T, W, Th, F, S, or Su: ")
+    for task in habits_list:
+        if day in task.days:
+            print(task.name)
 
 
 def view_all_habits():
-    [print(str(habit)) for habit in habits_list]
+    for habit in habits_list:
+        print(habit)
 
 
 def add_task():
-    # TODO - Add to CSV
     name = input("Enter the name of the task: ")
     habit_or_todo = input("Is this task a habit or a to-do item: ").lower()
     if habit_or_todo == "habit":
         days = input(
             "Enter days to complete this task (M, T, W, Th, F, S, Su), separated by dashes: "
         )
-        habits_list.append(Task(name, days.split("-")))
+        task = Task(name, days.split("-"))
+        habits_list.append(task)
+        append_to_csv(task)
     else:
-        to_do_list.append(Task(name))
+        task = Task(name)
+        to_do_list.append(task)
+        append_to_csv(task)
     print("Task added!")
 
 
@@ -78,7 +104,8 @@ def delete_task():
 
 
 def view_todo():
-    print([str(todo) for todo in to_do_list])
+    for todo in to_do_list:
+        print(todo)
 
 
 def view_all():
@@ -93,18 +120,20 @@ def close():
     is_running = False
 
 
+operations = {
+    "1": tasks_for_today,
+    "2": tasks_for_day,
+    "3": view_all_habits,
+    "4": add_task,
+    "5": delete_task,
+    "6": view_todo,
+    "7": view_all,
+    "8": close,
+}
+
+
 def main():
     read_file()
-    operations = {
-        "1": tasks_for_today,
-        "2": tasks_for_day,
-        "3": view_all_habits,
-        "4": add_task,
-        "5": delete_task,
-        "6": view_todo,
-        "7": view_all,
-        "8": close,
-    }
     while is_running:
         i = input(
             """What would you like to do?
@@ -118,10 +147,9 @@ def main():
         8. Close
         Only enter the number: """
         )
-        try:
-            operations[i]()
-        except:
-            print("operation not supported")
+        operations.get(i, lambda: print("operation not supported"))()
+        if i != "8":
+            input("ENTER to proceed")
 
 
 if __name__ == "__main__":

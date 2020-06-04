@@ -1,0 +1,6 @@
+settings.json
+.pytest_cache
+__pycache__/*
+tags
+.vscode
+settings.json
