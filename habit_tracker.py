@@ -54,29 +54,55 @@ def append_to_csv(task):
 
 
 def tasks_for_today():
+    """Prints all habits for today"""
     for task in habits_list:
         if today in task.days:
             print(task.name)
 
 
 def tasks_for_day():
-    # TODO add key exception checking
+    """Prints the tasks for an inputted day"""
+    full_day_map = {
+        "m": "Monday",
+        "t": "Tuesday",
+        "w": "Wednesday",
+        "th": "Thursday",
+        "f": "Friday",
+        "s": "Saturday",
+        "su": "Sunday",
+    }
     day = input("Get tasks for day, Enter: M, T, W, Th, F, S, or Su: ").lower().strip()
-    for task in habits_list:
-        if day in map(lambda x: x.lower(), task.days):
-            print(task.name)
+    task_found = False
+    try:
+        print(f"Tasks for {full_day_map[day]}:")
+        for task in habits_list:
+            # iterates over the map object from mapping the task.days list
+            # to the lower() function; this allows either 'm' or 'M' to show
+            # tasks for monday
+            if day in map(lambda x: x.lower(), task.days):
+                print(task.name)
+                task_found = True
+        if task_found is False:
+            print("None")
+    except KeyError:
+        print("input not supported")
+        input("ENTER to continute")
+        tasks_for_day()
 
 
 def view_all_habits():
+    """Prints all habits in the habits_list"""
     for habit in habits_list:
         print(habit)
 
 
 def habit_or_todo():
+    """Takes an input for if an item is a habit or a to-do"""
     return input("Is this task a habit or a to-do item: ").lower().strip()
 
 
 def add_task():
+    """Adds an inputted habit or a todo to its respective list"""
     name = input("Enter the name of the task: ")
     todo_or_habit = habit_or_todo()
     if todo_or_habit == "habit":
@@ -99,6 +125,8 @@ def add_task():
 
 
 def delete_task():
+    """Removes a task from its respective list:
+        either the to-do or habit list"""
     # TODO - Delete from CSV
     task_removed = False
     task_name = input("Enter the name of the task: ").lower().strip()
@@ -123,18 +151,21 @@ def delete_task():
 
 
 def view_todo():
+    """Prints the to-do list"""
     for todo in to_do_list:
         print(todo)
 
 
 def view_all():
-    print("Habits: ")
+    """Prints all habits and to-do items"""
+    print("Habits:")
     view_all_habits()
-    print("To-Do: ")
+    print("To-Do:")
     view_todo()
 
 
 def close():
+    """End the project loop"""
     global is_running
     is_running = False
 
@@ -152,6 +183,9 @@ operations = {
 
 
 def main():
+    """Parses the csv and initiates the project loop.
+    This loop maps inputs to previously specified functions
+    using the operations dictionary"""
     read_file()
     while is_running:
         i = input(
