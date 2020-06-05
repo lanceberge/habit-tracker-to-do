@@ -60,9 +60,10 @@ def tasks_for_today():
 
 
 def tasks_for_day():
-    day = input("Get tasks for day, Enter: M, T, W, Th, F, S, or Su: ")
+    # TODO add key exception checking
+    day = input("Get tasks for day, Enter: M, T, W, Th, F, S, or Su: ").lower().strip()
     for task in habits_list:
-        if day in task.days:
+        if day in map(lambda x: x.lower(), task.days):
             print(task.name)
 
 
@@ -71,36 +72,54 @@ def view_all_habits():
         print(habit)
 
 
+def habit_or_todo():
+    return input("Is this task a habit or a to-do item: ").lower().strip()
+
+
 def add_task():
     name = input("Enter the name of the task: ")
-    habit_or_todo = input("Is this task a habit or a to-do item: ").lower()
-    if habit_or_todo == "habit":
+    todo_or_habit = habit_or_todo()
+    if todo_or_habit == "habit":
         days = input(
             "Enter days to complete this task (M, T, W, Th, F, S, Su), separated by dashes: "
         )
         task = Task(name, days.split("-"))
         habits_list.append(task)
         append_to_csv(task)
-    else:
+        print("Task added!")
+    elif todo_or_habit == "to-do" or todo_or_habit == "to do":
         task = Task(name)
         to_do_list.append(task)
         append_to_csv(task)
-    print("Task added!")
+        print("Task added!")
+    else:
+        print("operation not supported")
+        input("ENTER to continue")
+        add_task()
 
 
 def delete_task():
     # TODO - Delete from CSV
     task_removed = False
-    task_name = input("Enter the name of the task: ")
-    habit_or_todo = input("Is this task a habit or a to-do item: ").lower()
-    task_dic = {"to-do item": to_do_list, "to-do": to_do_list, "habit": habits_list}
-    for task in task_dic[habit_or_todo]:
-        if task.name == task_name:
-            task_dic[habit_or_todo].remove(task)
-            task_removed = True
+    task_name = input("Enter the name of the task: ").lower().strip()
+    todo_or_habit = habit_or_todo()
+    task_dic = {
+        "to-do item": to_do_list,
+        "to-do": to_do_list,
+        "to do": to_do_list,
+        "habit": habits_list,
+    }
+    try:
+        for task in task_dic[todo_or_habit]:
+            if task.name.lower().strip() == task_name:
+                task_dic[todo_or_habit].remove(task)
+                task_removed = True
             break
-    to_print = "Task removed!" if task_removed else "No task found"
-    print(to_print)
+        removed_or_not = "Task removed!" if task_removed else "No task found"
+        print(removed_or_not)
+    except KeyError:
+        print("input not supported; enter: 'to-do item', 'to-do' or 'habit'")
+        delete_task()
 
 
 def view_todo():
@@ -147,6 +166,7 @@ def main():
         8. Close
         Only enter the number: """
         )
+        # calls the inputted operation or prints that it's not supported
         operations.get(i, lambda: print("operation not supported"))()
         if i != "8":
             input("ENTER to proceed")
